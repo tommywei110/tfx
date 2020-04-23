@@ -19,9 +19,6 @@
     this API call should be considered experimental, and may not work with
     asynchronous pipelines, sub-pipelines and pipelines with conditional nodes.
 *   Added Tuner component.
-*   Added the container-based sample pipeline (download, filter, print)
-*   Added the scripts/run_component.py script which makes it easy to run the
-    component code and executor code. (Similar to scripts/run_executor.py)
 
 ## Bug fixes and other changes
 
@@ -57,8 +54,6 @@
     should point to a Google Cloud Storage bucket.
 *   Converted the BaseNode class attributes to the constructor parameters. This
     won't affect any components derived from BaseComponent.
-*   Revert current per-component cache API (with `enable_cache`, which was only
-    available in tfx>=0.21.3,<0.22), in preparing for a future redesign.
 
 ### For pipeline authors
 
