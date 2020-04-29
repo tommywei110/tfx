@@ -5,6 +5,8 @@
 ## Bug fixes and other changes
 *   Added Tuner component, which is still work in progress.
 *   Added Tuner component to Iris e2e example.
+*   Using the correct import for the ml_metadata.errors instead of
+    tensorflow.errors
 
 ## Breaking changes
 
