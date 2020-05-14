@@ -34,11 +34,3 @@ tfx_py_proto_library(
         "@com_github_google_ml_metadata//ml_metadata/proto:metadata_store_py_pb2",
     ],
 )
-
-tfx_py_proto_library(
-    name = "pipeline_py_pb2",
-    srcs = ["pipeline.proto"],
-    deps = [
-        "@com_github_google_ml_metadata//ml_metadata/proto:metadata_store_py_pb2",
-    ],
-)
