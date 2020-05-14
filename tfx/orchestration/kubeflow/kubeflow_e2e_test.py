@@ -180,7 +180,7 @@ class KubeflowEndToEndTest(test_utils.BaseKubeflowTest):
 
   def testSimpleEnd2EndPipeline(self):
     """End-to-End test for simple pipeline."""
-    pipeline_name = 'kubeflow-e2e-test-{}'.format(self._random_id())
+    pipeline_name = 'kubeflow-e2e-test-{}'.format(test_utils.random_id())
     components = test_utils.create_e2e_components(
         self._pipeline_root(pipeline_name),
         self._data_root,
@@ -194,7 +194,8 @@ class KubeflowEndToEndTest(test_utils.BaseKubeflowTest):
 
   def testPrimitiveEnd2EndPipeline(self):
     """End-to-End test for primitive artifacts passing."""
-    pipeline_name = 'kubeflow-primitive-e2e-test-{}'.format(self._random_id())
+    pipeline_name = 'kubeflow-primitive-e2e-test-{}'.format(
+        test_utils.random_id())
     components = test_utils.create_primitive_type_components(pipeline_name)
     # Test that the pipeline can be executed successfully.
     pipeline = self._create_pipeline(pipeline_name, components)

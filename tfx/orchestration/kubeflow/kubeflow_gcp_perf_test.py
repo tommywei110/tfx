@@ -126,15 +126,7 @@ _BEAM_PIPELINE_ARGS = [
 
 class KubeflowGcpPerfTest(test_utils.BaseKubeflowTest):
 
-  @classmethod
-  def setUpClass(cls):
-    super(test_utils.BaseKubeflowTest, cls).setUpClass()
-    # Create a container image for use by test pipelines.
-    base_container_image = _BASE_CONTAINER_IMAGE
-
-    cls._container_image = '{}:{}'.format(base_container_image,
-                                          cls._random_id())
-    cls._build_and_push_docker_image(cls._container_image)
+  _base_container_image = _BASE_CONTAINER_IMAGE
 
   @classmethod
   def tearDownClass(cls):
@@ -303,7 +295,8 @@ class KubeflowGcpPerfTest(test_utils.BaseKubeflowTest):
         timeout=_TIME_OUT)
 
   def testFullTaxiGcpPipeline(self):
-    pipeline_name = 'gcp-perf-test-full-e2e-test-{}'.format(self._random_id())
+    pipeline_name = 'gcp-perf-test-full-e2e-test-{}'.format(
+        test_utils.random_id())
 
     # Custom CAIP training job using a testing image.
     ai_platform_training_args = {
