@@ -102,11 +102,21 @@ _AI_PLATFORM_SERVING_ARGS = {
     'regions': [_GCP_REGION],
 }
 
+# TODO(b/151114974): Remove `disk_size_gb` flag after default is increased.
+# TODO(b/151116587): Remove `shuffle_mode` flag after default is changed.
+# TODO(b/156874687): Remove `machine_type` flag once Dataflow becomes able to
+#                    scale out sufficiently.
 _BEAM_PIPELINE_ARGS = [
-    '--runner=DataflowRunner', '--experiments=shuffle_mode=auto',
+    '--runner=DataflowRunner',
     '--project=' + _GCP_PROJECT_ID,
     '--temp_location=gs://' + os.path.join(_BUCKET_NAME, 'dataflow', 'tmp'),
-    '--region=' + _GCP_REGION, '--disk_size_gb=50', '--no_use_public_ips'
+    '--no_use_public_ips'
+    '--region=' + _GCP_REGION,
+
+    # Temporary overrides of defaults.
+    '--disk_size_gb=50',
+    '--experiments=shuffle_mode=auto',
+    '--machine_type=n1-standard-8',
 ]
 
 
