@@ -18,14 +18,10 @@
     the supported platforms are Airflow, Beam, and Kubeflow Pipelines. Note that
     this API call should be considered experimental, and may not work with
     asynchronous pipelines, sub-pipelines and pipelines with conditional nodes.
-*   Added Tuner component.
-*   Added the container-based sample pipeline (download, filter, print)
-*   Added the scripts/run_component.py script which makes it easy to run the
-    component code and executor code. (Similar to scripts/run_executor.py)
 
 ## Bug fixes and other changes
 
-*   Depends on `apache-beam[gcp]>=2.21,<3`.
+*   Depends on `apache-beam[gcp]>=2.20,<3`.
 *   Depends on `grpcio>=2.18.1,<3`.
 *   Depends on `kubernetes>=10.0.1,<12`.
 *   Depends on `pyarrow>=0.16,<0.17`.
@@ -36,8 +32,6 @@
     jobs when running on KFP container.
 *   Depends on `frozendict>=1,<2`.
 *   Made ComponentSpec().inputs and .outputs behave more like real dictionaries.
-*   Depends on `kerastuner>=1,<2`.
-*   Depends on `pyyaml>=3.12,<6`.
 
 ### Deprecations
 
@@ -58,8 +52,6 @@
     should point to a Google Cloud Storage bucket.
 *   Converted the BaseNode class attributes to the constructor parameters. This
     won't affect any components derived from BaseComponent.
-*   Revert current per-component cache API (with `enable_cache`, which was only
-    available in tfx>=0.21.3,<0.22), in preparing for a future redesign.
 
 ### For pipeline authors
 

@@ -1,142 +1,345 @@
-# Command Line Interface for TFX
+# Using the TFX Command-line Interface
 
-Note: CLI doesn't have compatibility guarantees, interface might change across
-versions
+The TFX command-line interface (CLI) performs a full range of pipeline actions
+using pipeline orchestrators, such as Apache Airflow, Apache Beam, and Kubeflow
+Pipelines. For example, you can use the CLI to:
 
-## Introduction
+*   Create, update, and delete pipelines.
+*   Run a pipeline and monitor the run on various orchestrators.
+*   List pipelines and pipeline runs.
 
-The CLI helps perform full range of pipeline actions like create, update, run,
-list and delete pipelines using various orchestrators including Apache Airflow,
-Apache Beam and Kubeflow.
+Note: The TFX CLI doesn't currently provide compatibility guarantees. The CLI
+interface might change as new versions are released.
 
-## How to use the CLI tool
+## About the TFX CLI
 
-The CLI is a part of the TFX package. All the commands follow the structure
-below:
+The TFX CLI is installed as a part of the TFX package. All CLI commands follow
+the structure below:
 
-        tfx <group_name> <sub-command> flags
+<pre class="devsite-terminal">
+tfx <var>command-group</var> <var>command</var> <var>flags</var>
+</pre>
 
-There are several [flags](#flags) in tfx CLI. `-`(hyphen) or `_`(underscore) can
-be used to specify long flags. For example, you can specify a pipeline name
-using either `--pipeline_name <name>` or `--pipeline-name <name>`. Note that
-flags were expressed only using underscores in most cases for brevity.
+The following <var>command-group</var> options are currently supported:
 
-## Commands
+*   [tfx pipeline](#pipeline) - Create and manage TFX pipelines.
+*   [tfx run](#run) - Create and manage runs of TFX pipelines on various
+    orchestration platforms.
+*   [tfx template](#template) - Experimental commands for listing and copying
+    TFX pipeline templates.
 
-The following command groups are currently supported.
+Each command group provides a set of <var>commands</var>. Follow the
+instructions in the [pipeline commands](#pipeline), [run commands](#run), and
+[template commands](#template) sections to learn more about using these
+commands.
 
-** Important note:
+Warning: Currently not all commands are supported in every orchestrator. Such
+commands explicitly mention the engines supported.
 
-Currently not all commands are supported in every orchestrator. Such commands
-explicitly mention the engines supported.
+Learn more about [<var>flags</var> used in the TFX CLI](#flags).
 
-### Pipeline group
+## tfx pipeline {: #pipeline}
 
-The command structure for pipeline group of commands is as follows:
+The structure for commands in the `tfx pipeline` command group is as follows:
 
-      tfx pipeline <subcommand> <required_flags> [optional_flags]
+<pre class="devsite-terminal">
+tfx pipeline <var>command</var> <var>required-flags</var> [<var>optional-flags</var>]
+</pre>
 
-#### create
+Use the following sections to learn more about the commands in the `tfx
+pipeline` command group.
+
+### create
 
 Creates a new pipeline in the given orchestrator.
 
 Usage:
 
-      tfx pipeline create <required_flags> [optional_flags]
+<pre class="devsite-click-to-copy devsite-terminal">
+tfx pipeline create --pipeline_path=<var>pipeline-path</var> [--endpoint=<var>endpoint</var> --engine=<var>engine</var> \
+--iap_client_id=<var>iap-client-id</var> --namespace=<var>namespace</var> --package_path=<var>package-path</var> \
+--build_target_image=<var>build-target-image</var> --build_base_image=<var>build-base-image</var> \
+--skaffold_cmd=<var>skaffold-command</var>]
+</pre>
 
-Required flags:
+<dl>
+  <dt>--pipeline_path=<var>pipeline-path</var></dt>
+  <dd>The path to the pipeline configuration file.</dd>
+  <dt>--endpoint=<var>endpoint</var></dt>
+  <dd>
+    <p>
+      (Optional.) Endpoint of the Kubeflow Pipelines API service. For example:
+    </p>
+    <ul>
+      <li>
+        <p>
+          If you connect to your Kubeflow Pipelines cluster using a
+          <code>kubectl</code> proxy connection, your endpoint is something
+          like the following:</p>
+        <code>127.0.0.1:8080/pipeline</code>
+      </li>
+      <li>
+        <p>
+         If your Kubeflow cluster uses Google Cloud's Identity-Aware
+          Proxy (IAP), your endpoint is something like the following:
+        </p>
+        <code>https://<var>deployment_name</var>.endpoints.<var>project_id</var>.cloud.goog/pipeline</code>
+        <p>Replace the following values:</p>
+        <ul>
+          <li><var>deployment_name</var>: The name of your cluster.</li>
+          <li><var>project_id</var>: The name of your Google Cloud project.</li>
+        </ul>
+      </li>
+    </ul>
+    <p>
+      If the <code>--endpoint</code> is not specified, the in-cluster service
+      DNS name is used as the default value. This name works only if the
+      CLI command executes in a pod on the Kubeflow Pipelines cluster, such as a
+      <a href="https://www.kubeflow.org/docs/notebooks/why-use-jupyter-notebook/"
+           class="external">Kubeflow Jupyter notebooks</a> instance.
+    </p>
+  </dd>
+  <dt>--engine=<var>engine</var></dt>
+  <dd>
+    <p>
+      (Optional.) The orchestrator to be used for the pipeline. The value of
+      engine must match on of the following values:
+    </p>
+    <ul>
+      <li><strong>airflow</strong>: sets engine to Apache Airflow</li>
+      <li><strong>beam</strong>: sets engine to Apache Beam</li>
+      <li><strong>kubeflow</strong>: sets engine to Kubeflow</li>
+    </ul>
+    <p>
+      If the engine is not set, the engine is auto-detected based on the
+      environment.
+    </p>
+    <p>
+      ** Important note: The orchestrator required by the DagRunner in the
+      pipeline config file must match the selected or autodetected engine.
+      Engine auto-detection is based on user environment. If Apache Airflow
+      and Kubeflow Pipelines are not installed, then Apache Beam is used by
+      default.
+    </p>
+  </dd>
+  <dt>--iap_client_id=<var>iap-client-id</var></dt>
+  <dd>
+    (Optional.) Client ID for IAP protected endpoint.
+  </dd>
 
-*   --pipeline_path
+  <dt>--namespace=<var>namespace</var>
+  <dd>
+    (Optional.) Kubernetes namespace to connect to the Kubeflow Pipelines API.
+    If the namespace is not specified, the value defaults to
+    <code>kubeflow</code>.
+  </dd>
 
-Optional flags:
+  <dt>--package_path=<var>package-path</var></dt>
+  <dd>
+    <p>
+      (Optional.) Path to the compiled pipeline as a file. The compiled pipeline
+      should be a compressed file (<code>.tar.gz</code>, <code>.tgz</code>, or
+      <code>.zip</code>) or a YAML file (<code>.yaml</code> or
+      <code>.yml</code>).
+    </p>
+    <p>
+      If <var>package-path</var> is not specified, TFX uses the following as
+      the default path:
+      <code><var>current_directory</var>/<var>pipeline_name</var>.tar.gz</code>
+    </p>
+  </dd>
+  <dt>--build_target_image=<var>build-target-image</var></dt>
+  <dd>
+    <p>
+      (Optional.) When the <var>engine</var> is <strong>kubeflow</strong>, TFX
+      creates a container image for your pipeline. The build target image
+      specifies the name, container image repository, and tag to use when
+      creating the pipeline container image. If you do not specify a tag, the
+      container image is tagged as <code>latest</code>.
+    </p>
+    <p>
+      For your Kubeflow Pipelines cluster to run your pipeline, the cluster must
+      be able to access the specified container image repository.
+    </p>
+  </dd>
+  <dt>--build_base_image=<var>build-base-image</var></dt>
+  <dd>
+    <p>
+      (Optional.) When the <var>engine</var> is <strong>kubeflow</strong>, TFX
+      creates a container image for your pipeline. The build base image
+      specifies the base container image to use when building the pipeline
+      container image.
+    </p>
+  </dd>
+  <dt>--skaffold_cmd=<var>skaffold-cmd</var></dt>
+  <dd>
+    <p>
+      (Optional.) The path to <a href="https://skaffold.dev/" class="external">
+      Skaffold</a> on your computer.
+    </p>
+  </dd>
+</dl>
 
-*   --endpoint
-*   --engine
-*   --iap_client_id
-*   --namespace
-*   --package_path
-*   --build_target_image
-*   --build_base_image
-*   --skaffold_cmd
-
-Examples:
+#### Examples:
 
 Apache Airflow:
 
-    tfx pipeline create \
-    --engine=airflow \
-    --pipeline_path=<path_to_dsl>
+<pre class="devsite-terminal">
+tfx pipeline create --engine=airflow --pipeline_path=<var>pipeline-path</var>
+</pre>
 
 Apache Beam:
 
-    tfx pipeline create \
-    --engine=beam \
-    --pipeline_path=<path_to_dsl> \
+<pre class="devsite-terminal">
+tfx pipeline create --engine=beam --pipeline_path=<var>pipeline-path</var>
+</pre>
 
 Kubeflow:
 
-    tfx pipeline create \
-    --engine=kubeflow \
-    --pipeline_path=<path_to_dsl> \
-    --package_path=<path_to_package_file> \
-    --client_id=<IAP_client_id> \
-    --namespace=<kubernetes_namespace> \
-    --endpoint=<endpoint_url> \
-    --skaffold_cmd=<path_to_skaffold_binary>
+<pre class="devsite-terminal">
+tfx pipeline create --engine=kubeflow --pipeline_path=<var>pipeline-path</var> --package_path=<var>package-path</var> \
+--iap_client_id=<var>iap-client-id</var> --namespace=<var>namespace</var> --endpoint=<var>endpoint</var> \
+--skaffold_cmd=<var>shaffold-cmd</var>
+</pre>
 
 To autodetect engine from user environment, simply avoid using the engine flag
 like the example below. For more details, check the flags section.
 
-    tfx pipeline create \
-    --pipeline_path=<path_to_dsl>
+<pre class="devsite-terminal">
+tfx pipeline create --pipeline_path=<var>pipeline-path</var> --endpoint --engine --iap_client_id --namespace \
+--package_path --skaffold_cmd
+</pre>
 
-#### update
+### update
 
 Updates an existing pipeline in the given orchestrator.
 
 Usage:
 
-       tfx pipeline update <required_flags> [optional_flags]
+<pre class="devsite-click-to-copy devsite-terminal">
+tfx pipeline update --pipeline_path=<var>pipeline-path</var> [--endpoint=<var>endpoint</var> --engine=<var>engine</var> \
+--iap_client_id=<var>iap-client-id</var> --namespace=<var>namespace</var> --package_path=<var>package-path</var> \
+--skaffold_cmd=<var>skaffold-command</var>]
+</pre>
 
-Required flags:
+<dl>
+  <dt>--pipeline_path=<var>pipeline-path</var></dt>
+  <dd>The path to the pipeline configuration file.</dd>
+  <dt>--endpoint=<var>endpoint</var></dt>
+  <dd>
+    <p>
+      (Optional.) Endpoint of the Kubeflow Pipelines API service. For example:
+    </p>
+    <ul>
+      <li>
+        <p>
+          If you connect to your Kubeflow Pipelines cluster using a
+          <code>kubectl</code> proxy connection, your endpoint is something
+          like the following:</p>
+        <code>127.0.0.1:8080/pipeline</code>
+      </li>
+      <li>
+        <p>
+         If your Kubeflow cluster uses Google Cloud's Identity-Aware
+          Proxy (IAP), your endpoint is something like the following:
+        </p>
+        <code>https://<var>deployment_name</var>.endpoints.<var>project_id</var>.cloud.goog/pipeline</code>
+        <p>Replace the following values:</p>
+        <ul>
+          <li><var>deployment_name</var>: The name of your cluster.</li>
+          <li><var>project_id</var>: The name of your Google Cloud project.</li>
+        </ul>
+      </li>
+    </ul>
+    <p>
+      If the <code>--endpoint</code> is not specified, the in-cluster service
+      DNS name is used as the default value. This name works only if the
+      CLI command executes in a pod on the Kubeflow Pipelines cluster, such as a
+      <a href="https://www.kubeflow.org/docs/notebooks/why-use-jupyter-notebook/"
+           class="external">Kubeflow Jupyter notebooks</a> instance.
+    </p>
+  </dd>
+  <dt>--engine=<var>engine</var></dt>
+  <dd>
+    <p>
+      (Optional.) The orchestrator to be used for the pipeline. The value of
+      engine must match on of the following values:
+    </p>
+    <ul>
+      <li><strong>airflow</strong>: sets engine to Apache Airflow</li>
+      <li><strong>beam</strong>: sets engine to Apache Beam</li>
+      <li><strong>kubeflow</strong>: sets engine to Kubeflow</li>
+    </ul>
+    <p>
+      If the engine is not set, the engine is auto-detected based on the
+      environment.
+    </p>
+    <p>
+      ** Important note: The orchestrator required by the DagRunner in the
+      pipeline config file must match the selected or autodetected engine.
+      Engine auto-detection is based on user environment. If Apache Airflow
+      and Kubeflow Pipelines are not installed, then Apache Beam is used by
+      default.
+    </p>
+  </dd>
+  <dt>--iap_client_id=<var>iap-client-id</var></dt>
+  <dd>
+    (Optional.) Client ID for IAP protected endpoint.
+  </dd>
 
-*   --pipeline_path
+  <dt>--namespace=<var>namespace</var>
+  <dd>
+    (Optional.) Kubernetes namespace to connect to the Kubeflow Pipelines API.
+    If the namespace is not specified, the value defaults to
+    <code>kubeflow</code>.
+  </dd>
 
-Optional flags:
+  <dt>--package_path=<var>package-path</var></dt>
+  <dd>
+    <p>
+      (Optional.) Path to the compiled pipeline as a file. The compiled pipeline
+      should be a compressed file (<code>.tar.gz</code>, <code>.tgz</code>, or
+      <code>.zip</code>) or a YAML file (<code>.yaml</code> or
+      <code>.yml</code>).
+    </p>
+    <p>
+      If <var>package-path</var> is not specified, TFX uses the following as
+      the default path:
+      <code><var>current_directory</var>/<var>pipeline_name</var>.tar.gz</code>
+    </p>
+  </dd>
+  <dt>--skaffold_cmd=<var>skaffold-cmd</var></dt>
+  <dd>
+    <p>
+      (Optional.) The path to <a href="https://skaffold.dev/" class="external">
+      Skaffold</a> on your computer.
+    </p>
+  </dd>
+</dl>
 
-*   --endpoint
-*   --engine
-*   --iap_client_id
-*   --namespace
-*   --package_path
-*   --skaffold_cmd
-
-Examples:
+#### Examples:
 
 Apache Airflow:
 
-    tfx pipeline update \
-    --engine=airflow \
-    --pipeline_path=<path_to_dsl>
+<pre class="devsite-terminal">
+tfx pipeline update --engine=airflow --pipeline_path=<var>pipeline-path</var>
+</pre>
 
 Apache Beam:
 
-    tfx pipeline update \
-    --engine=beam \
-    --pipeline_path=<path_to_dsl>
+<pre class="devsite-terminal">
+tfx pipeline update --engine=beam --pipeline_path=<var>pipeline-path</var>
+</pre>
 
 Kubeflow:
 
-    tfx pipeline update \
-    --engine=kubeflow \
-    --pipeline_path=<path_to_dsl> \
-    --package_path=<path_to_package_file> \
-    --client_id=<IAP_client_id> \
-    --namespace=<kubernetes_namespace>
-    --endpoint=<endpoint_url> \
-    --skaffold_cmd=<path_to_skaffold_binary>
+<pre class="devsite-terminal">
+tfx pipeline update --engine=kubeflow --pipeline_path=<var>pipeline-path</var> --package_path=<var>package-path</var> \
+--iap_client_id=<var>iap-client-id</var> --namespace=<var>namespace</var> --endpoint=<var>endpoint</var> \
+--skaffold_cmd=<var>skaffold-cmd</var>
+</pre>
 
-#### compile
+### compile
 
 Compiles the pipeline config file to create a workflow file in Kubeflow and
 performs the following checks while compiling:
@@ -152,168 +355,445 @@ Recommended to use before creating or updating a pipeline.
 
 Usage:
 
-        tfx pipeline compile <required_flags> [optional_flags]
+<pre class="devsite-click-to-copy devsite-terminal">
+tfx pipeline compile --pipeline_path=<var>pipeline-path</var> [--endpoint=<var>endpoint</var> --engine=<var>engine</var> \
+--iap_client_id=<var>iap-client-id</var> --namespace=<var>namespace</var> --package_path=<var>package-path</var>]
+</pre>
 
-Required flags:
+<dl>
+  <dt>--pipeline_path=<var>pipeline-path</var></dt>
+  <dd>The path to the pipeline configuration file.</dd>
+  <dt>--endpoint=<var>endpoint</var></dt>
+  <dd>
+    <p>
+      (Optional.) Endpoint of the Kubeflow Pipelines API service. For example:
+    </p>
+    <ul>
+      <li>
+        <p>
+          If you connect to your Kubeflow Pipelines cluster using a
+          <code>kubectl</code> proxy connection, your endpoint is something
+          like the following:</p>
+        <code>127.0.0.1:8080/pipeline</code>
+      </li>
+      <li>
+        <p>
+         If your Kubeflow cluster uses Google Cloud's Identity-Aware
+          Proxy (IAP), your endpoint is something like the following:
+        </p>
+        <code>https://<var>deployment_name</var>.endpoints.<var>project_id</var>.cloud.goog/pipeline</code>
+        <p>Replace the following values:</p>
+        <ul>
+          <li><var>deployment_name</var>: The name of your cluster.</li>
+          <li><var>project_id</var>: The name of your Google Cloud project.</li>
+        </ul>
+      </li>
+    </ul>
+    <p>
+      If the <code>--endpoint</code> is not specified, the in-cluster service
+      DNS name is used as the default value. This name works only if the
+      CLI command executes in a pod on the Kubeflow Pipelines cluster, such as a
+      <a href="https://www.kubeflow.org/docs/notebooks/why-use-jupyter-notebook/"
+           class="external">Kubeflow Jupyter notebooks</a> instance.
+    </p>
+  </dd>
+  <dt>--engine=<var>engine</var></dt>
+  <dd>
+    <p>
+      (Optional.) The orchestrator to be used for the pipeline. The value of
+      engine must match on of the following values:
+    </p>
+    <ul>
+      <li><strong>airflow</strong>: sets engine to Apache Airflow</li>
+      <li><strong>beam</strong>: sets engine to Apache Beam</li>
+      <li><strong>kubeflow</strong>: sets engine to Kubeflow</li>
+    </ul>
+    <p>
+      If the engine is not set, the engine is auto-detected based on the
+      environment.
+    </p>
+    <p>
+      ** Important note: The orchestrator required by the DagRunner in the
+      pipeline config file must match the selected or autodetected engine.
+      Engine auto-detection is based on user environment. If Apache Airflow
+      and Kubeflow Pipelines are not installed, then Apache Beam is used by
+      default.
+    </p>
+  </dd>
+  <dt>--iap_client_id=<var>iap-client-id</var></dt>
+  <dd>
+    (Optional.) Client ID for IAP protected endpoint.
+  </dd>
 
-*   --pipeline_path
+  <dt>--namespace=<var>namespace</var>
+  <dd>
+    (Optional.) Kubernetes namespace to connect to the Kubeflow Pipelines API.
+    If the namespace is not specified, the value defaults to
+    <code>kubeflow</code>.
+  </dd>
 
-Optional flags:
+  <dt>--package_path=<var>package-path</var></dt>
+  <dd>
+    <p>
+      (Optional.) Path to the compiled pipeline as a file. The compiled pipeline
+      should be a compressed file (<code>.tar.gz</code>, <code>.tgz</code>, or
+      <code>.zip</code>) or a YAML file (<code>.yaml</code> or
+      <code>.yml</code>).
+    </p>
+    <p>
+      If <var>package-path</var> is not specified, TFX uses the following as
+      the default path:
+      <code><var>current_directory</var>/<var>pipeline_name</var>.tar.gz</code>
+    </p>
+  </dd>
+</dl>
 
-*   --endpoint
-*   --engine
-*   --iap_client_id
-*   --namespace
-*   --package_path
-
-Examples:
+#### Examples:
 
 Apache Airflow:
 
-    tfx pipeline compile \
-    --engine=airflow \
-    --pipeline_path=<path_to_dsl>
+<pre class="devsite-terminal">
+tfx pipeline compile --engine=airflow --pipeline_path=<var>pipeline-path</var>
+</pre>
 
 Apache Beam:
 
-    tfx pipeline compile \
-    --engine=beam \
-    --pipeline_path=<path_to_dsl>
+<pre class="devsite-terminal">
+tfx pipeline compile --engine=beam --pipeline_path=<var>pipeline-path</var>
+</pre>
 
 Kubeflow:
 
-    tfx pipeline compile \
-    --engine=kubeflow \
-    --pipeline_path=<path_to_dsl> \
-    --package_path=<path_to_package_file> \
-    --client_id=<IAP_client_id> \
-    --namespace=<kubernetes_namespace>
-    --endpoint=<endpoint_url>
+<pre class="devsite-terminal">
+tfx pipeline compile --engine=kubeflow --pipeline_path=<var>pipeline-path</var> --package_path=<var>package-path</var> \
+--iap_client_id=<var>iap-client-id</var> --namespace=<var>namespace</var> --endpoint=<var>endpoint</var>
+</pre>
 
-#### delete
+### delete
 
 Deletes a pipeline from the given orchestrator.
 
 Usage:
 
-        tfx pipeline delete <required_flags> [optional_flags]
+<pre class="devsite-click-to-copy devsite-terminal">
+tfx pipeline delete --pipeline_path=<var>pipeline-path</var> [--endpoint=<var>endpoint</var> --engine=<var>engine</var> \
+--iap_client_id=<var>iap-client-id</var> --namespace=<var>namespace</var>]
+</pre>
 
-Required flags:
+<dl>
+  <dt>--pipeline_path=<var>pipeline-path</var></dt>
+  <dd>The path to the pipeline configuration file.</dd>
+  <dt>--endpoint=<var>endpoint</var></dt>
+  <dd>
+    <p>
+      (Optional.) Endpoint of the Kubeflow Pipelines API service. For example:
+    </p>
+    <ul>
+      <li>
+        <p>
+          If you connect to your Kubeflow Pipelines cluster using a
+          <code>kubectl</code> proxy connection, your endpoint is something
+          like the following:</p>
+        <code>127.0.0.1:8080/pipeline</code>
+      </li>
+      <li>
+        <p>
+         If your Kubeflow cluster uses Google Cloud's Identity-Aware
+          Proxy (IAP), your endpoint is something like the following:
+        </p>
+        <code>https://<var>deployment_name</var>.endpoints.<var>project_id</var>.cloud.goog/pipeline</code>
+        <p>Replace the following values:</p>
+        <ul>
+          <li><var>deployment_name</var>: The name of your cluster.</li>
+          <li><var>project_id</var>: The name of your Google Cloud project.</li>
+        </ul>
+      </li>
+    </ul>
+    <p>
+      If the <code>--endpoint</code> is not specified, the in-cluster service
+      DNS name is used as the default value. This name works only if the
+      CLI command executes in a pod on the Kubeflow Pipelines cluster, such as a
+      <a href="https://www.kubeflow.org/docs/notebooks/why-use-jupyter-notebook/"
+           class="external">Kubeflow Jupyter notebooks</a> instance.
+    </p>
+  </dd>
+  <dt>--engine=<var>engine</var></dt>
+  <dd>
+    <p>
+      (Optional.) The orchestrator to be used for the pipeline. The value of
+      engine must match on of the following values:
+    </p>
+    <ul>
+      <li><strong>airflow</strong>: sets engine to Apache Airflow</li>
+      <li><strong>beam</strong>: sets engine to Apache Beam</li>
+      <li><strong>kubeflow</strong>: sets engine to Kubeflow</li>
+    </ul>
+    <p>
+      If the engine is not set, the engine is auto-detected based on the
+      environment.
+    </p>
+    <p>
+      ** Important note: The orchestrator required by the DagRunner in the
+      pipeline config file must match the selected or autodetected engine.
+      Engine auto-detection is based on user environment. If Apache Airflow
+      and Kubeflow Pipelines are not installed, then Apache Beam is used by
+      default.
+    </p>
+  </dd>
+  <dt>--iap_client_id=<var>iap-client-id</var></dt>
+  <dd>
+    (Optional.) Client ID for IAP protected endpoint.
+  </dd>
 
-*   --pipeline_name
+  <dt>--namespace=<var>namespace</var>
+  <dd>
+    (Optional.) Kubernetes namespace to connect to the Kubeflow Pipelines API.
+    If the namespace is not specified, the value defaults to
+    <code>kubeflow</code>.
+  </dd>
+</dl>
 
-Optional flags:
-
-*   --engine
-*   --namespace
-*   --iap_client_id
-*   --endpoint
-
-Examples:
+#### Examples:
 
 Apache Airflow:
 
-    tfx pipeline delete \
-    --engine=airflow \
-    --pipeline_name=<name_of_the_pipeline>
+<pre class="devsite-terminal">
+tfx pipeline delete --engine=airflow --pipeline_name=<var>pipeline-name</var>
+</pre>
 
 Apache Beam:
 
-    tfx pipeline delete \
-    --engine=beam \
-    --pipeline_name=<name_of_the_pipeline>
+<pre class="devsite-terminal">
+tfx pipeline delete --engine=beam --pipeline_name=<var>pipeline-name</var>
+</pre>
 
 Kubeflow:
 
-    tfx pipeline delete \
-    --engine=kubeflow \
-    --pipeline_name=<name_of the_pipeline> \
-    --client_id=<IAP_client_id> \
-    --namespace=<kubernetes_namespace> \
-    --endpoint=<endpoint_url>
+<pre class="devsite-terminal">
+tfx pipeline delete --engine=kubeflow --pipeline_name=<var>pipeline-name</var> \
+--iap_client_id=<var>iap-client-id</var> --namespace=<var>namespace</var> --endpoint=<var>endpoint</var>
+</pre>
 
-#### list
+### list
 
 Lists all the pipelines in the given orchestrator.
 
 Usage:
 
-       tfx pipeline list [optional_flags]
+<pre class="devsite-click-to-copy devsite-terminal">
+tfx pipeline list [--endpoint=<var>endpoint</var> --engine=<var>engine</var> \
+--iap_client_id=<var>iap-client-id</var> --namespace=<var>namespace</var>]
+</pre>
 
-Optional flags:
+<dl>
+  <dt>--endpoint=<var>endpoint</var></dt>
+  <dd>
+    <p>
+      (Optional.) Endpoint of the Kubeflow Pipelines API service. For example:
+    </p>
+    <ul>
+      <li>
+        <p>
+          If you connect to your Kubeflow Pipelines cluster using a
+          <code>kubectl</code> proxy connection, your endpoint is something
+          like the following:</p>
+        <code>127.0.0.1:8080/pipeline</code>
+      </li>
+      <li>
+        <p>
+         If your Kubeflow cluster uses Google Cloud's Identity-Aware
+          Proxy (IAP), your endpoint is something like the following:
+        </p>
+        <code>https://<var>deployment_name</var>.endpoints.<var>project_id</var>.cloud.goog/pipeline</code>
+        <p>Replace the following values:</p>
+        <ul>
+          <li><var>deployment_name</var>: The name of your cluster.</li>
+          <li><var>project_id</var>: The name of your Google Cloud project.</li>
+        </ul>
+      </li>
+    </ul>
+    <p>
+      If the <code>--endpoint</code> is not specified, the in-cluster service
+      DNS name is used as the default value. This name works only if the
+      CLI command executes in a pod on the Kubeflow Pipelines cluster, such as a
+      <a href="https://www.kubeflow.org/docs/notebooks/why-use-jupyter-notebook/"
+           class="external">Kubeflow Jupyter notebooks</a> instance.
+    </p>
+  </dd>
+  <dt>--engine=<var>engine</var></dt>
+  <dd>
+    <p>
+      (Optional.) The orchestrator to be used for the pipeline. The value of
+      engine must match on of the following values:
+    </p>
+    <ul>
+      <li><strong>airflow</strong>: sets engine to Apache Airflow</li>
+      <li><strong>beam</strong>: sets engine to Apache Beam</li>
+      <li><strong>kubeflow</strong>: sets engine to Kubeflow</li>
+    </ul>
+    <p>
+      If the engine is not set, the engine is auto-detected based on the
+      environment.
+    </p>
+    <p>
+      ** Important note: The orchestrator required by the DagRunner in the
+      pipeline config file must match the selected or autodetected engine.
+      Engine auto-detection is based on user environment. If Apache Airflow
+      and Kubeflow Pipelines are not installed, then Apache Beam is used by
+      default.
+    </p>
+  </dd>
+  <dt>--iap_client_id=<var>iap-client-id</var></dt>
+  <dd>
+    (Optional.) Client ID for IAP protected endpoint.
+  </dd>
 
-*   --endpoint
-*   --engine
-*   --iap_client_id
-*   --namespace
+  <dt>--namespace=<var>namespace</var>
+  <dd>
+    (Optional.) Kubernetes namespace to connect to the Kubeflow Pipelines API.
+    If the namespace is not specified, the value defaults to
+    <code>kubeflow</code>.
+  </dd>
+</dl>
 
-Examples:
+#### Examples:
 
 Apache Airflow:
 
-    tfx pipeline list --engine=airflow
+<pre class="devsite-terminal">
+tfx pipeline list --engine=airflow
+</pre>
 
 Apache Beam:
 
-    tfx pipeline list --engine=beam
+<pre class="devsite-terminal">
+tfx pipeline list --engine=beam
+</pre>
 
 Kubeflow:
 
-    tfx pipeline list \
-    --engine=kubeflow \
-    --client_id=<IAP_client_id> \
-    --namespace=<kubernetes_namespace> \
-    --endpoint=<endpoint_url>
+<pre class="devsite-terminal">
+tfx pipeline list --engine=kubeflow --iap_client_id=<var>iap-client-id</var> \
+--namespace=<var>namespace</var> --endpoint=<var>endpoint</var>
+</pre>
 
-### Run group
+## tfx run {: #run}
 
-The command structure for run group of commands is as follows:
+The structure for commands in the `tfx run` command group is as follows:
 
-      tfx run <subcommand> <required_flags> [optional_flags]
+<pre class="devsite-terminal">
+tfx run <var>command</var> <var>required-flags</var> [<var>optional-flags</var>]
+</pre>
 
-#### create
+Use the following sections to learn more about the commands in the `tfx run`
+command group.
+
+### create
 
 Creates a new run instance for a pipeline in the orchestrator.
 
 Usage:
 
-        tfx run create <required_flags> [optional_flags]
+<pre class="devsite-click-to-copy devsite-terminal">
+tfx run create --pipeline_name=<var>pipeline-name</var> [--endpoint=<var>endpoint</var> \
+--engine=<var>engine</var> --iap_client_id=<var>iap-client-id</var> --namespace=<var>namespace</var>]
+</pre>
 
-Required flags:
+<dl>
+  <dt>--pipeline_name=<var>pipeline-name</var></dt>
+  <dd>The name of the pipeline.</dd>
+  <dt>--endpoint=<var>endpoint</var></dt>
+  <dd>
+    <p>
+      (Optional.) Endpoint of the Kubeflow Pipelines API service. For example:
+    </p>
+    <ul>
+      <li>
+        <p>
+          If you connect to your Kubeflow Pipelines cluster using a
+          <code>kubectl</code> proxy connection, your endpoint is something
+          like the following:</p>
+        <code>127.0.0.1:8080/pipeline</code>
+      </li>
+      <li>
+        <p>
+         If your Kubeflow cluster uses Google Cloud's Identity-Aware
+          Proxy (IAP), your endpoint is something like the following:
+        </p>
+        <code>https://<var>deployment_name</var>.endpoints.<var>project_id</var>.cloud.goog/pipeline</code>
+        <p>Replace the following values:</p>
+        <ul>
+          <li><var>deployment_name</var>: The name of your cluster.</li>
+          <li><var>project_id</var>: The name of your Google Cloud project.</li>
+        </ul>
+      </li>
+    </ul>
+    <p>
+      If the <code>--endpoint</code> is not specified, the in-cluster service
+      DNS name is used as the default value. This name works only if the
+      CLI command executes in a pod on the Kubeflow Pipelines cluster, such as a
+      <a href="https://www.kubeflow.org/docs/notebooks/why-use-jupyter-notebook/"
+           class="external">Kubeflow Jupyter notebooks</a> instance.
+    </p>
+  </dd>
+  <dt>--engine=<var>engine</var></dt>
+  <dd>
+    <p>
+      (Optional.) The orchestrator to be used for the pipeline. The value of
+      engine must match on of the following values:
+    </p>
+    <ul>
+      <li><strong>airflow</strong>: sets engine to Apache Airflow</li>
+      <li><strong>beam</strong>: sets engine to Apache Beam</li>
+      <li><strong>kubeflow</strong>: sets engine to Kubeflow</li>
+    </ul>
+    <p>
+      If the engine is not set, the engine is auto-detected based on the
+      environment.
+    </p>
+    <p>
+      ** Important note: The orchestrator required by the DagRunner in the
+      pipeline config file must match the selected or autodetected engine.
+      Engine auto-detection is based on user environment. If Apache Airflow
+      and Kubeflow Pipelines are not installed, then Apache Beam is used by
+      default.
+    </p>
+  </dd>
+  <dt>--iap_client_id=<var>iap-client-id</var></dt>
+  <dd>
+    (Optional.) Client ID for IAP protected endpoint.
+  </dd>
 
-*   --pipeline_name
+  <dt>--namespace=<var>namespace</var>
+  <dd>
+    (Optional.) Kubernetes namespace to connect to the Kubeflow Pipelines API.
+    If the namespace is not specified, the value defaults to
+    <code>kubeflow</code>.
+  </dd>
+</dl>
 
-Optional flags:
-
-*   --endpoint
-*   --engine
-*   --iap_client_id
-*   --namespace
-
-Examples:
+#### Examples:
 
 Apache Airflow:
 
-    tfx run create \
-    --engine=airflow \
-    --pipeline_name=<name_of_the_pipeline>
+<pre class="devsite-terminal">
+tfx run create --engine=airflow --pipeline_name=<var>pipeline-name</var>
+</pre>
 
 Apache Beam:
 
-    tfx run create \
-    --engine=beam \
-    --pipeline_name=<name_of_the_pipeline>
+<pre class="devsite-terminal">
+tfx run create --engine=beam --pipeline_name=<var>pipeline-name</var>
+</pre>
 
 Kubeflow:
 
-    tfx run create \
-    --engine=kubeflow \
-    --pipeline_name=<name_of the_pipeline> \
-    --client_id=<IAP_client_id> \
-    --namespace=<kubernetes_namespace> \
-    --endpoint=<endpoint_url>
+<pre class="devsite-terminal">
+tfx run create --engine=kubeflow --pipeline_name=<var>pipeline-name</var> --iap_client_id=<var>iap-client-id</var> \
+--namespace=<var>namespace</var> --endpoint=<var>endpoint</var>
+</pre>
 
-#### terminate
+### terminate
 
 Stops a run of a given pipeline.
 
@@ -321,31 +801,94 @@ Stops a run of a given pipeline.
 
 Usage:
 
-       tfx run terminate <required_flags> [optional_flags]
+<pre class="devsite-click-to-copy devsite-terminal">
+tfx run terminate --run_id=<var>run-id</var> [--endpoint=<var>endpoint</var> --engine=<var>engine</var> \
+--iap_client_id=<var>iap-client-id</var> --namespace=<var>namespace</var>]
+</pre>
 
-Required flags:
+<dl>
+  <dt>--run_id=<var>run-id</var></dt>
+  <dd>Unique identifier for a pipeline run.</dd>
+  <dt>--endpoint=<var>endpoint</var></dt>
+  <dd>
+    <p>
+      (Optional.) Endpoint of the Kubeflow Pipelines API service. For example:
+    </p>
+    <ul>
+      <li>
+        <p>
+          If you connect to your Kubeflow Pipelines cluster using a
+          <code>kubectl</code> proxy connection, your endpoint is something
+          like the following:</p>
+        <code>127.0.0.1:8080/pipeline</code>
+      </li>
+      <li>
+        <p>
+         If your Kubeflow cluster uses Google Cloud's Identity-Aware
+          Proxy (IAP), your endpoint is something like the following:
+        </p>
+        <code>https://<var>deployment_name</var>.endpoints.<var>project_id</var>.cloud.goog/pipeline</code>
+        <p>Replace the following values:</p>
+        <ul>
+          <li><var>deployment_name</var>: The name of your cluster.</li>
+          <li><var>project_id</var>: The name of your Google Cloud project.</li>
+        </ul>
+      </li>
+    </ul>
+    <p>
+      If the <code>--endpoint</code> is not specified, the in-cluster service
+      DNS name is used as the default value. This name works only if the
+      CLI command executes in a pod on the Kubeflow Pipelines cluster, such as a
+      <a href="https://www.kubeflow.org/docs/notebooks/why-use-jupyter-notebook/"
+           class="external">Kubeflow Jupyter notebooks</a> instance.
+    </p>
+  </dd>
+  <dt>--engine=<var>engine</var></dt>
+  <dd>
+    <p>
+      (Optional.) The orchestrator to be used for the pipeline. The value of
+      engine must match on of the following values:
+    </p>
+    <ul>
+      <li><strong>airflow</strong>: sets engine to Apache Airflow</li>
+      <li><strong>beam</strong>: sets engine to Apache Beam</li>
+      <li><strong>kubeflow</strong>: sets engine to Kubeflow</li>
+    </ul>
+    <p>
+      If the engine is not set, the engine is auto-detected based on the
+      environment.
+    </p>
+    <p>
+      ** Important note: The orchestrator required by the DagRunner in the
+      pipeline config file must match the selected or autodetected engine.
+      Engine auto-detection is based on user environment. If Apache Airflow
+      and Kubeflow Pipelines are not installed, then Apache Beam is used by
+      default.
+    </p>
+  </dd>
+  <dt>--iap_client_id=<var>iap-client-id</var></dt>
+  <dd>
+    (Optional.) Client ID for IAP protected endpoint.
+  </dd>
 
-*   --run_id
+  <dt>--namespace=<var>namespace</var>
+  <dd>
+    (Optional.) Kubernetes namespace to connect to the Kubeflow Pipelines API.
+    If the namespace is not specified, the value defaults to
+    <code>kubeflow</code>.
+  </dd>
+</dl>
 
-Optional flags:
-
-*   --endpoint
-*   --engine
-*   --iap_client_id
-*   --namespace
-
-Examples:
+#### Examples:
 
 Kubeflow:
 
-      tfx run delete \
-    --engine=kubeflow \
-    --run_id=<run_id> \
-    --client_id=<IAP_client_id> \
-    --namespace=<kubernetes_namespace> \
-    --endpoint=<endpoint_url>
+<pre class="devsite-terminal">
+tfx run delete --engine=kubeflow --run_id=<var>run-id</var> --iap_client_id=<var>iap-client-id</var> \
+--namespace=<var>namespace</var> --endpoint=<var>endpoint</var>
+</pre>
 
-#### list
+### list
 
 Lists all runs of a pipeline.
 
@@ -353,37 +896,100 @@ Lists all runs of a pipeline.
 
 Usage:
 
-       tfx run list <required_flags> [optional_flags]
+<pre class="devsite-click-to-copy devsite-terminal">
+tfx run list --pipeline_name=<var>pipeline-name</var> [--endpoint=<var>endpoint</var> \
+--engine=<var>engine</var> --iap_client_id=<var>iap-client-id</var> --namespace=<var>namespace</var>]
+</pre>
 
-Required flags:
+<dl>
+  <dt>--pipeline_name=<var>pipeline-name</var></dt>
+  <dd>The name of the pipeline.</dd>
+  <dt>--endpoint=<var>endpoint</var></dt>
+  <dd>
+    <p>
+      (Optional.) Endpoint of the Kubeflow Pipelines API service. For example:
+    </p>
+    <ul>
+      <li>
+        <p>
+          If you connect to your Kubeflow Pipelines cluster using a
+          <code>kubectl</code> proxy connection, your endpoint is something
+          like the following:</p>
+        <code>127.0.0.1:8080/pipeline</code>
+      </li>
+      <li>
+        <p>
+         If your Kubeflow cluster uses Google Cloud's Identity-Aware
+          Proxy (IAP), your endpoint is something like the following:
+        </p>
+        <code>https://<var>deployment_name</var>.endpoints.<var>project_id</var>.cloud.goog/pipeline</code>
+        <p>Replace the following values:</p>
+        <ul>
+          <li><var>deployment_name</var>: The name of your cluster.</li>
+          <li><var>project_id</var>: The name of your Google Cloud project.</li>
+        </ul>
+      </li>
+    </ul>
+    <p>
+      If the <code>--endpoint</code> is not specified, the in-cluster service
+      DNS name is used as the default value. This name works only if the
+      CLI command executes in a pod on the Kubeflow Pipelines cluster, such as a
+      <a href="https://www.kubeflow.org/docs/notebooks/why-use-jupyter-notebook/"
+           class="external">Kubeflow Jupyter notebooks</a> instance.
+    </p>
+  </dd>
+  <dt>--engine=<var>engine</var></dt>
+  <dd>
+    <p>
+      (Optional.) The orchestrator to be used for the pipeline. The value of
+      engine must match on of the following values:
+    </p>
+    <ul>
+      <li><strong>airflow</strong>: sets engine to Apache Airflow</li>
+      <li><strong>beam</strong>: sets engine to Apache Beam</li>
+      <li><strong>kubeflow</strong>: sets engine to Kubeflow</li>
+    </ul>
+    <p>
+      If the engine is not set, the engine is auto-detected based on the
+      environment.
+    </p>
+    <p>
+      ** Important note: The orchestrator required by the DagRunner in the
+      pipeline config file must match the selected or autodetected engine.
+      Engine auto-detection is based on user environment. If Apache Airflow
+      and Kubeflow Pipelines are not installed, then Apache Beam is used by
+      default.
+    </p>
+  </dd>
+  <dt>--iap_client_id=<var>iap-client-id</var></dt>
+  <dd>
+    (Optional.) Client ID for IAP protected endpoint.
+  </dd>
 
-*   --pipeline_name
+  <dt>--namespace=<var>namespace</var>
+  <dd>
+    (Optional.) Kubernetes namespace to connect to the Kubeflow Pipelines API.
+    If the namespace is not specified, the value defaults to
+    <code>kubeflow</code>.
+  </dd>
+</dl>
 
-Optional flags:
-
-*   --endpoint
-*   --engine
-*   --iap_client_id
-*   --namespace
-
-Examples:
+#### Examples:
 
 Apache Airflow:
 
-    tfx run list \
-    --engine=airflow \
-    --pipeline_name=<name_of_the_pipeline>
+<pre class="devsite-terminal">
+tfx run list --engine=airflow --pipeline_name=<var>pipeline-name</var>
+</pre>
 
 Kubeflow:
 
-    tfx run list \
-    --engine=kubeflow \
-    --pipeline_name=<name_of the_pipeline> \
-    --client_id=<IAP_client_id> \
-    --namespace=<kubernetes_namespace> \
-    --endpoint=<endpoint_url>
+<pre class="devsite-terminal">
+tfx run list --engine=kubeflow --pipeline_name=<var>pipeline-name</var> --iap_client_id=<var>iap-client-id</var> \
+--namespace=<var>namespace</var> --endpoint=<var>endpoint</var>
+</pre>
 
-#### status
+### status
 
 Returns the current status of a run.
 
@@ -391,40 +997,102 @@ Returns the current status of a run.
 
 Usage:
 
-       tfx run status <required_flags> [optional_flags]
+<pre class="devsite-click-to-copy devsite-terminal">
+tfx run status --pipeline_name=<var>pipeline-name</var> --run_id=<var>run-id</var> [--endpoint=<var>endpoint</var> \
+--engine=<var>engine</var> --iap_client_id=<var>iap-client-id</var> --namespace=<var>namespace</var>]
+</pre>
 
-Required flags:
+<dl>
+  <dt>--pipeline_name=<var>pipeline-name</var></dt>
+  <dd>The name of the pipeline.</dd>
+  <dt>--run_id=<var>run-id</var></dt>
+  <dd>Unique identifier for a pipeline run.</dd>
+  <dt>--endpoint=<var>endpoint</var></dt>
+  <dd>
+    <p>
+      (Optional.) Endpoint of the Kubeflow Pipelines API service. For example:
+    </p>
+    <ul>
+      <li>
+        <p>
+          If you connect to your Kubeflow Pipelines cluster using a
+          <code>kubectl</code> proxy connection, your endpoint is something
+          like the following:</p>
+        <code>127.0.0.1:8080/pipeline</code>
+      </li>
+      <li>
+        <p>
+         If your Kubeflow cluster uses Google Cloud's Identity-Aware
+          Proxy (IAP), your endpoint is something like the following:
+        </p>
+        <code>https://<var>deployment_name</var>.endpoints.<var>project_id</var>.cloud.goog/pipeline</code>
+        <p>Replace the following values:</p>
+        <ul>
+          <li><var>deployment_name</var>: The name of your cluster.</li>
+          <li><var>project_id</var>: The name of your Google Cloud project.</li>
+        </ul>
+      </li>
+    </ul>
+    <p>
+      If the <code>--endpoint</code> is not specified, the in-cluster service
+      DNS name is used as the default value. This name works only if the
+      CLI command executes in a pod on the Kubeflow Pipelines cluster, such as a
+      <a href="https://www.kubeflow.org/docs/notebooks/why-use-jupyter-notebook/"
+           class="external">Kubeflow Jupyter notebooks</a> instance.
+    </p>
+  </dd>
+  <dt>--engine=<var>engine</var></dt>
+  <dd>
+    <p>
+      (Optional.) The orchestrator to be used for the pipeline. The value of
+      engine must match on of the following values:
+    </p>
+    <ul>
+      <li><strong>airflow</strong>: sets engine to Apache Airflow</li>
+      <li><strong>beam</strong>: sets engine to Apache Beam</li>
+      <li><strong>kubeflow</strong>: sets engine to Kubeflow</li>
+    </ul>
+    <p>
+      If the engine is not set, the engine is auto-detected based on the
+      environment.
+    </p>
+    <p>
+      ** Important note: The orchestrator required by the DagRunner in the
+      pipeline config file must match the selected or autodetected engine.
+      Engine auto-detection is based on user environment. If Apache Airflow
+      and Kubeflow Pipelines are not installed, then Apache Beam is used by
+      default.
+    </p>
+  </dd>
+  <dt>--iap_client_id=<var>iap-client-id</var></dt>
+  <dd>
+    (Optional.) Client ID for IAP protected endpoint.
+  </dd>
 
-*   --pipeline_name
-*   --run_id
+  <dt>--namespace=<var>namespace</var>
+  <dd>
+    (Optional.) Kubernetes namespace to connect to the Kubeflow Pipelines API.
+    If the namespace is not specified, the value defaults to
+    <code>kubeflow</code>.
+  </dd>
+</dl>
 
-Optional flags:
-
-*   --endpoint
-*   --engine
-*   --iap_client_id
-*   --namespace
-
-Examples:
+#### Examples:
 
 Apache Airflow:
 
-    tfx run status \
-    --engine=airflow \
-    --run_id=<run_id> \
-    --pipeline_name=<name_of_the_pipeline>
+<pre class="devsite-terminal">
+tfx run status --engine=airflow --run_id=<var>run-id</var> --pipeline_name=<var>pipeline-name</var>
+</pre>
 
 Kubeflow:
 
-    tfx run status \
-    --engine=kubeflow \
-    --run_id=<run_id> \
-    --pipeline_name=<name_of the_pipeline> \
-    --client_id=<IAP_client_id> \
-    --namespace=<kubernetes_namespace> \
-    --endpoint=<endpoint_url>
+<pre class="devsite-terminal">
+tfx run status --engine=kubeflow --run_id=<var>run-id</var> --pipeline_name=<var>pipeline-name</var> \
+--iap_client_id=<var>iap-client-id</var> --namespace=<var>namespace</var> --endpoint=<var>endpoint</var>
+</pre>
 
-#### delete
+### delete
 
 Deletes a run of a given pipeline.
 
@@ -432,122 +1100,238 @@ Deletes a run of a given pipeline.
 
 Usage:
 
-       tfx run delete <required_flags> [optional_flags]
+<pre class="devsite-click-to-copy devsite-terminal">
+tfx run delete --run_id=<var>run-id</var> [--engine=<var>engine</var> --iap_client_id=<var>iap-client-id</var> \
+--namespace=<var>namespace</var> --endpoint=<var>endpoint</var>]
+</pre>
 
-Required flags:
+<dl>
+  <dt>--run_id=<var>run-id</var></dt>
+  <dd>Unique identifier for a pipeline run.</dd>
+  <dt>--endpoint=<var>endpoint</var></dt>
+  <dd>
+    <p>
+      (Optional.) Endpoint of the Kubeflow Pipelines API service. For example:
+    </p>
+    <ul>
+      <li>
+        <p>
+          If you connect to your Kubeflow Pipelines cluster using a
+          <code>kubectl</code> proxy connection, your endpoint is something
+          like the following:</p>
+        <code>127.0.0.1:8080/pipeline</code>
+      </li>
+      <li>
+        <p>
+         If your Kubeflow cluster uses Google Cloud's Identity-Aware
+          Proxy (IAP), your endpoint is something like the following:
+        </p>
+        <code>https://<var>deployment_name</var>.endpoints.<var>project_id</var>.cloud.goog/pipeline</code>
+        <p>Replace the following values:</p>
+        <ul>
+          <li><var>deployment_name</var>: The name of your cluster.</li>
+          <li><var>project_id</var>: The name of your Google Cloud project.</li>
+        </ul>
+      </li>
+    </ul>
+    <p>
+      If the <code>--endpoint</code> is not specified, the in-cluster service
+      DNS name is used as the default value. This name works only if the
+      CLI command executes in a pod on the Kubeflow Pipelines cluster, such as a
+      <a href="https://www.kubeflow.org/docs/notebooks/why-use-jupyter-notebook/"
+           class="external">Kubeflow Jupyter notebooks</a> instance.
+    </p>
+  </dd>
+  <dt>--engine=<var>engine</var></dt>
+  <dd>
+    <p>
+      (Optional.) The orchestrator to be used for the pipeline. The value of
+      engine must match on of the following values:
+    </p>
+    <ul>
+      <li><strong>airflow</strong>: sets engine to Apache Airflow</li>
+      <li><strong>beam</strong>: sets engine to Apache Beam</li>
+      <li><strong>kubeflow</strong>: sets engine to Kubeflow</li>
+    </ul>
+    <p>
+      If the engine is not set, the engine is auto-detected based on the
+      environment.
+    </p>
+    <p>
+      ** Important note: The orchestrator required by the DagRunner in the
+      pipeline config file must match the selected or autodetected engine.
+      Engine auto-detection is based on user environment. If Apache Airflow
+      and Kubeflow Pipelines are not installed, then Apache Beam is used by
+      default.
+    </p>
+  </dd>
+  <dt>--iap_client_id=<var>iap-client-id</var></dt>
+  <dd>
+    (Optional.) Client ID for IAP protected endpoint.
+  </dd>
 
-*   --run_id
+  <dt>--namespace=<var>namespace</var>
+  <dd>
+    (Optional.) Kubernetes namespace to connect to the Kubeflow Pipelines API.
+    If the namespace is not specified, the value defaults to
+    <code>kubeflow</code>.
+  </dd>
+</dl>
 
-Optional flags:
-
-*   --endpoint
-*   --engine
-*   --iap_client_id
-*   --namespace
-
-Examples:
+#### Examples:
 
 Kubeflow:
 
-    tfx run delete \
-    --engine=kubeflow \
-    --run_id=<run_id> \
-    --client_id=<IAP_client_id> \
-    --namespace=<kubernetes_namespace> \
-    --endpoint=<endpoint_url>
+<pre class="devsite-terminal">
+tfx run delete --engine=kubeflow --run_id=<var>run-id</var> --iap_client_id=<var>iap-client-id</var> \
+--namespace=<var>namespace</var> --endpoint=<var>endpoint</var>
+</pre>
 
-### [Experimental] Template group
+## tfx template [Experimental] {: #template}
 
-The command structure for template group of commands is as follows:
+The structure for commands in the `tfx template` command group is as follows:
 
-      tfx template <subcommand> <required_flags> [optional_flags]
+<pre class="devsite-terminal">
+tfx template <var>command</var> <var>required-flags</var> [<var>optional-flags</var>]
+</pre>
 
-Template is an experimental feature and subject to change at any time.
+Use the following sections to learn more about the commands in the `tfx
+template` command group. Template is an experimental feature and subject to
+change at any time.
 
-#### list
+### list
 
-List available templates.
+List available TFX pipeline templates.
 
 Usage:
 
-    tfx template list
+<pre class="devsite-click-to-copy devsite-terminal">
+tfx template list
+</pre>
 
-#### copy
+### copy
 
 Copy a template to the destination directory.
 
 Usage:
 
-    tfx template copy <required_flags>
+<pre class="devsite-click-to-copy devsite-terminal">
+tfx template copy --model=<var>model</var> --pipeline_name=<var>pipeline-name</var> \
+--destination_path=<var>destination-path</var>
+</pre>
 
-Required flags:
+<dl>
+  <dt>--model=<var>model</var></dt>
+  <dd>The name of the model built by the pipeline template.</dd>
+  <dt>--pipeline_name=<var>pipeline-name</var></dt>
+  <dd>The name of the pipeline.</dd>
+  <dt>--destination_path=<var>destination-path</var></dt>
+  <dd>The path to copy the template to.</dd>
+</dl>
 
-*   --model
-*   --pipeline_name
-*   --destination_path
-
-Examples:
-
-    tfx template copy \
-    --model=<model> \
-    --pipeline_name=<name_of_the_pipeline> \
-    --destination_path=<path_to_be_created>
-
-## Flags
+## Understanding TFX CLI Flags {: #flags}
 
 ### Common flags
 
-*   --engine
+<dl>
+  <dt>--engine=<var>engine</var></dt>
+  <dd>
+    <p>
+      The orchestrator to be used for the pipeline. The value of engine must
+      match on of the following values:
+    </p>
+    <ul>
+      <li><strong>airflow</strong>: sets engine to Apache Airflow</li>
+      <li><strong>beam</strong>: sets engine to Apache Beam</li>
+      <li><strong>kubeflow</strong>: sets engine to Kubeflow</li>
+    </ul>
+    <p>
+      If the engine is not set, the engine is auto-detected based on the
+      environment.
+    </p>
+    <p>
+      ** Important note: The orchestrator required by the DagRunner in the
+      pipeline config file must match the selected or autodetected engine.
+      Engine auto-detection is based on user environment. If Apache Airflow
+      and Kubeflow Pipelines are not installed, then Apache Beam is used by
+      default.
+    </p>
+  </dd>
 
-    The orchestrator to be used for the pipeline. The engine is auto-detected
-    based on the environment if not set or else set the flag to one of the
-    following values:
+  <dt>--pipeline_name=<var>pipeline-name</var></dt>
+  <dd>The name of the pipeline.</dd>
 
-    *   airflow: sets engine to Apache Airflow
-    *   beam: sets engine to Apache Beam
-    *   kubeflow: sets engine to Kubeflow
+  <dt>--pipeline_path=<var>pipeline-path</var></dt>
+  <dd>The path to the pipeline configuration file.</dd>
 
-    ** Important note: The orchestrator required by the DagRunner in the
-    pipeline config file must match the selected or autodetected engine. Engine
-    auto-detection is based on user environment. If Apache Airflow or Kubeflow
-    is not installed then Apache Beam is used by default.
+  <dt>--run_id=<var>run-id</var></dt>
+  <dd>Unique identifier for a pipeline run.</dd>
 
-*   --pipeline_name or --pipeline-name
-
-    The name of the pipeline.
-
-*   --pipeline_path or --pipeline-path
-
-    The path to the pipeline configuration file.
-
-*   --run_id or --run-id
-
-    Unique identifier for a run instance of the pipeline.
+</dl>
 
 ### Kubeflow specific flags
 
-*   --endpoint
+<dl>
+  <dt>--endpoint=<var>endpoint</var></dt>
+  <dd>
+    <p>
+      Endpoint of the Kubeflow Pipelines API service. For example:
+    </p>
+    <ul>
+      <li>
+        <p>
+          If you connect to your Kubeflow Pipelines cluster using a
+          <code>kubectl</code> proxy connection, your endpoint is something
+          like the following:</p>
+        <code>127.0.0.1:8080/pipeline</code>
+      </li>
+      <li>
+        <p>
+         If your Kubeflow cluster uses Google Cloud's Identity-Aware
+          Proxy (IAP), your endpoint is something like the following:
+        </p>
+        <code>https://<var>deployment_name</var>.endpoints.<var>project_id</var>.cloud.goog/pipeline</code>
+        <p>Replace the following values:</p>
+        <ul>
+          <li><var>deployment_name</var>: The name of your cluster.</li>
+          <li><var>project_id</var>: The name of your Google Cloud project.</li>
+        </ul>
+      </li>
+    </ul>
+    <p>
+      If the <code>--endpoint</code> is not specified, the in-cluster service
+      DNS name is used as the default value. This name works only if the
+      CLI command executes in a pod on the Kubeflow Pipelines cluster, such as a
+      <a href="https://www.kubeflow.org/docs/notebooks/why-use-jupyter-notebook/"
+           class="external">Kubeflow Jupyter notebooks</a> instance.
+    </p>
+  </dd>
 
-    Endpoint of the KFP API service to connect. If not set, the in-cluster
-    service DNS name will be used, which only works if the current environment
-    is a pod in the same cluster (such as a Jupyter instance spawned by
-    Kubeflow's JupyterHub). If a different connection to cluster exists, such as
-    a kubectl proxy connection, then set it to something like
-    "127.0.0.1:8080/pipeline". To use an IAP enabled cluster, set it to
-    "https://<deployment_name>.endpoints.<project_id>.cloud.goog/pipeline"
-
-*   --iap_client_id or --iap-client-id
-
+  <dt>--iap_client_id=<var>iap-client-id</var></dt>
+  <dd>
     Client ID for IAP protected endpoint.
+  </dd>
 
-*   --namespace
+  <dt>--namespace=<var>namespace</var>
+  <dd>
+    Kubernetes namespace to connect to the Kubeflow Pipelines API. If the
+    namespace is not specified, the value defaults to
+    <code>kubeflow</code>.
+  </dd>
 
-    Kubernetes namespace to connect to the KFP API. Default value is set to
-    'kubeflow'.
+  <dt>--package_path=<var>package-path</var></dt>
+  <dd>
+    <p>
+      Path to the compiled pipeline as a file. The compiled pipeline should be a
+      compressed file (<code>.tar.gz</code>, <code>.tgz</code>, or
+      <code>.zip</code>) or a YAML file (<code>.yaml</code> or
+      <code>.yml</code>).
+    </p>
+    <p>
+      If <var>package-path</var> is not specified, TFX uses the following as
+      the default path:
+      <code><var>current_directory</var>/<var>pipeline_name</var>.tar.gz</code>
+    </p>
+  </dd>
 
-*   --package_path or --package-path
-
-    Path to the pipeline output workflow file. The package_file should end with
-    '.tar.gz', '.tgz', '.zip', '.yaml' or '.yml'. When unset, the workflow file
-    will be searched in this path:
-    "\<current_directory>/\<pipeline_name>\.tar.gz".
+</dl>

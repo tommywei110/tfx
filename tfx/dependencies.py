@@ -22,7 +22,7 @@ def make_required_install_packages():
   return [
       'absl-py>=0.1.6,<0.9',
       # LINT.IfChange
-      'apache-beam[gcp]>=2.21,<3',
+      'apache-beam[gcp]>=2.20,<3',
       # LINT.ThenChange(examples/chicago_taxi_pipeline/setup/setup_beam.sh)
       # TODO(b/149399451): remove once avro has a healthy release.
       ('avro-python3>=1.8.1,!=1.9.2.*,<2.0.0; '
@@ -33,7 +33,6 @@ def make_required_install_packages():
       'google-api-python-client>=1.7.8,<2',
       'grpcio>=1.28.1,<2',
       'jinja2>=2.7.3,<3',
-      'keras-tuner>=1,<2',
       'kubernetes>=10.0.1,<12',
       # LINT.IfChange
       'ml-metadata>=0.21.2,<0.22',
@@ -42,9 +41,10 @@ def make_required_install_packages():
       # TODO(b/156131638): Remove this when dependency conflicts are resolved
       # after 0.22.0 releasing window.
       'pyarrow==0.15.1',
-      'pyyaml>=3.12,<6',
+      'pyyaml>=5,<6',
       'six>=1.10,<2',
-      'tensorflow>=1.15,<3',
+      # TODO(b/156035765): enable TF2.2.
+      'tensorflow>=1.15,<2.2',
       'tensorflow-data-validation>=0.21.4,<0.22',
       'tensorflow-model-analysis>=0.21.4,<0.22',
       'tensorflow-serving-api>=1.15,<3',
@@ -58,13 +58,7 @@ def make_required_test_packages():
   # Note: It is okay to pin packages to exact verions in this list to minimize
   # conflicts.
   return [
-      'apache-airflow[mysql]>=1.10.10,<2',
-      # TODO(b/157208532): Remove pinned version of Werkzeug when we don't
-      # support Python 3.5.
-      'Werkzeug==0.16.1; python_version == "3.5"',
-      # TODO(b/157033885): Remove pinned version of WTForms after newer version
-      # of Apache Airflow.
-      'WTForms==2.2.1',
+      'apache-airflow>=1.10.10,<2',
       'kfp>=0.4,<0.5',
       'pytest>=5,<6',
   ]

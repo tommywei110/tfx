@@ -76,7 +76,7 @@ VOCAB_SIZE = 1000
 OOV_SIZE = 10
 
 # Keys
-LABEL_KEY = 'big_tipper'
+LABEL_KEY = 'tips'
 
 
 def transformed_name(key: Text) -> Text:
