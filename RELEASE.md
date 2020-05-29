@@ -90,7 +90,11 @@
 *   Changed the encoding of the Integer and Float artifacts to be more portable.
 
 ## Documentation updates
-*   N/A
+*   Adds concept guides for understanding TFX pipelines and components.
+*   Adds guides to building Python function-based components and container-based
+    components.
+*   Adds BulkInferrer component and TFX CLI documentation to the table of
+    contents.
 
 ## Deprecations
 *   Deprecating Py2 support
