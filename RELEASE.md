@@ -83,6 +83,8 @@
     should point to a Google Cloud Storage bucket.
 *   Revert current per-component cache API (with `enable_cache`, which was only
     available in tfx>=0.21.3,<0.22), in preparing for a future redesign.
+*   Removed Tuner from custom_components/ as it's supported under components/
+    now.
 
 ### For component authors
 *   Converted the BaseNode class attributes to the constructor parameters. This
