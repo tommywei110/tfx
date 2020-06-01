@@ -24,6 +24,7 @@
     component code and executor code. (Similar to scripts/run_executor.py)
 *   Added support for container component execution to BeamDagRunner.
 *   Introduced experimental generic Artifact types for ML workflows.
+*   Added uDSL IR compiler that encodes a TFX pipeline into a uDSL proto.
 
 ## Bug fixes and other changes
 

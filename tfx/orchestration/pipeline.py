@@ -139,7 +139,7 @@ class Pipeline(object):
 
   @components.setter
   def components(self, components: List[base_node.BaseNode]):
-    deduped_components = set(components)
+    deduped_components = sorted(set(components), key=lambda c: c.id)
     producer_map = {}
     instances_per_component_type = collections.defaultdict(set)
 
