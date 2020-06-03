@@ -20,7 +20,7 @@ from __future__ import print_function
 
 import os
 import re
-from typing import Any, Dict, Iterable, List, Text, Tuple, Union
+from typing import Any, Dict, Iterable, List, Optional, Text, Tuple, Union
 
 import absl
 import six
@@ -30,6 +30,10 @@ from tfx.proto import example_gen_pb2
 from tfx.utils import io_utils
 from google.protobuf import json_format
 
+# Key for input in executor exec_properties.
+INPUT_KEY = 'input'
+# Key for output examples in executor output_dict.
+EXAMPLES_KEY = 'examples'
 # Fingerprint custom property.
 FINGERPRINT_PROPERTY_NAME = 'input_fingerprint'
 # Span custom property.
@@ -234,8 +238,8 @@ def _retrieve_latest_span(uri: Text,
 
 
 def calculate_splits_fingerprint_and_span(
-    input_base_uri: Text,
-    splits: Iterable[example_gen_pb2.Input.Split]) -> Tuple[Text, Any]:
+    input_base_uri: Text, splits: Iterable[example_gen_pb2.Input.Split]
+) -> Tuple[Text, Optional[Text]]:
   """Calculates the fingerprint of files in a URI matching split patterns.
 
   If a pattern has the {SPAN} placeholder, attempts to find an identical value
@@ -244,7 +248,9 @@ def calculate_splits_fingerprint_and_span(
 
   Args:
     input_base_uri: The base path from which files will be searched
-    splits: An iterable collection of example_gen_pb2.Input.Split objects
+    splits: An iterable collection of example_gen_pb2.Input.Split objects.
+            Note that this function will update the {SPAN} in this split config
+            to actual Span number.
 
   Returns:
     A Tuple of [fingerprint, select_span], where select_span is either
@@ -271,7 +277,7 @@ def calculate_splits_fingerprint_and_span(
       select_span = '0'
     # Calculate fingerprint
     pattern = os.path.join(input_base_uri, split.pattern)
-    fingerprint = io_utils.generate_fingerprint(split.name, pattern)
-    split_fingerprints.append(fingerprint)
+    fp = io_utils.generate_fingerprint(split.name, pattern)
+    split_fingerprints.append(fp)
   fingerprint = '\n'.join(split_fingerprints)
   return fingerprint, select_span

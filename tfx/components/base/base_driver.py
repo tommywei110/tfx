@@ -30,13 +30,13 @@ from tfx.types import artifact_utils
 from tfx.types import channel_utils
 
 
-def _generate_output_uri(base_output_dir: Text, name: Text,
-                         execution_id: int) -> Text:
+def generate_output_uri(base_output_dir: Text, name: Text,
+                        execution_id: int) -> Text:
   """Generate uri for output artifact."""
   return os.path.join(base_output_dir, name, str(execution_id))
 
 
-def _prepare_output_paths(artifact: types.Artifact):
+def prepare_output_paths(artifact: types.Artifact):
   """Create output directories for output artifact."""
   if tf.io.gfile.exists(artifact.uri):
     msg = 'Output artifact uri %s already exists' % artifact.uri
@@ -181,6 +181,7 @@ class BaseDriver(object):
   def _prepare_output_artifacts(
       self,
       output_dict: Dict[Text, types.Channel],
+      exec_properties: Dict[Text, Any],  # pylint: disable=unused-argument
       execution_id: int,
       pipeline_info: data_types.PipelineInfo,
       component_info: data_types.ComponentInfo,
@@ -191,8 +192,8 @@ class BaseDriver(object):
                                    component_info.component_id)
     for name, output_list in result.items():
       for artifact in output_list:
-        artifact.uri = _generate_output_uri(base_output_dir, name, execution_id)
-        _prepare_output_paths(artifact)
+        artifact.uri = generate_output_uri(base_output_dir, name, execution_id)
+        prepare_output_paths(artifact)
 
     return result
 
@@ -273,6 +274,7 @@ class BaseDriver(object):
       # Step 4a. New execution is needed. Prepare output artifacts.
       output_artifacts = self._prepare_output_artifacts(
           output_dict=output_dict,
+          exec_properties=exec_properties,
           execution_id=execution.id,
           pipeline_info=pipeline_info,
           component_info=component_info)

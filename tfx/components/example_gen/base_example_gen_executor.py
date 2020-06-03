@@ -37,11 +37,6 @@ from tfx.types import artifact_utils
 
 # Default file name for TFRecord output file prefix.
 DEFAULT_FILE_NAME = 'data_tfrecord'
-# Key for input in executor input_dict.
-INPUT_KEY = 'input'
-
-# Key for output examples in executor output_dict.
-EXAMPLES_KEY = 'examples'
 
 
 def _PartitionFn(record: bytes, num_partitions: int, buckets: List[int]) -> int:
@@ -237,7 +232,8 @@ class BaseExampleGenExecutor(
       for split_name, example_split in example_splits.items():
         (example_split
          | 'WriteSplit[{}]'.format(split_name) >> _WriteSplit(
-             artifact_utils.get_split_uri(output_dict['examples'], split_name)))
+             artifact_utils.get_split_uri(output_dict[utils.EXAMPLES_KEY],
+                                          split_name)))
       # pylint: enable=expression-not-assigned, no-value-for-parameter
 
     absl.logging.info('Examples generated.')

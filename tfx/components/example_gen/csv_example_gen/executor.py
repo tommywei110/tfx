@@ -28,8 +28,7 @@ from tfx_bsl.coders import csv_decoder
 
 from tfx import types
 from tfx.components.example_gen.base_example_gen_executor import BaseExampleGenExecutor
-from tfx.components.example_gen.base_example_gen_executor import INPUT_KEY
-from tfx.types import artifact_utils
+from tfx.components.example_gen.utils import INPUT_KEY
 from tfx.utils import io_utils
 
 
@@ -93,8 +92,8 @@ class _ParsedCsvToTfExample(beam.DoFn):
 @beam.typehints.with_output_types(tf.train.Example)
 def _CsvToExample(  # pylint: disable=invalid-name
     pipeline: beam.Pipeline,
-    input_dict: Dict[Text, List[types.Artifact]],
-    exec_properties: Dict[Text, Any],  # pylint: disable=unused-argument
+    input_dict: Dict[Text, List[types.Artifact]],  # pylint: disable=unused-argument
+    exec_properties: Dict[Text, Any],
     split_pattern: Text) -> beam.pvalue.PCollection:
   """Read CSV files and transform to TF examples.
 
@@ -103,9 +102,8 @@ def _CsvToExample(  # pylint: disable=invalid-name
   Args:
     pipeline: beam pipeline.
     input_dict: Input dict from input key to a list of Artifacts.
-      - input_base: input dir that contains csv data. csv files must have header
-        line.
     exec_properties: A dict of execution properties.
+      - input: input dir that contains CSV data. CSV must have header line.
     split_pattern: Split.pattern in Input config, glob relative file pattern
       that maps to input files with root directory given by input_base.
 
@@ -115,7 +113,7 @@ def _CsvToExample(  # pylint: disable=invalid-name
   Raises:
     RuntimeError: if split is empty or csv headers are not equal.
   """
-  input_base_uri = artifact_utils.get_single_uri(input_dict[INPUT_KEY])
+  input_base_uri = exec_properties[INPUT_KEY]
   csv_pattern = os.path.join(input_base_uri, split_pattern)
   absl.logging.info(
       'Processing input csv data {} to TFExample.'.format(csv_pattern))

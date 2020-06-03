@@ -27,9 +27,8 @@ import tensorflow as tf
 
 from tfx import types
 from tfx.components.example_gen.base_example_gen_executor import BaseExampleGenExecutor
-from tfx.components.example_gen.base_example_gen_executor import INPUT_KEY
 from tfx.components.example_gen.utils import dict_to_example
-from tfx.types import artifact_utils
+from tfx.components.example_gen.utils import INPUT_KEY
 
 
 @beam.ptransform_fn
@@ -37,8 +36,8 @@ from tfx.types import artifact_utils
 @beam.typehints.with_output_types(tf.train.Example)
 def _AvroToExample(  # pylint: disable=invalid-name
     pipeline: beam.Pipeline,
-    input_dict: Dict[Text, List[types.Artifact]],
-    exec_properties: Dict[Text, Any],  # pylint: disable=unused-argument
+    input_dict: Dict[Text, List[types.Artifact]],  # pylint: disable=unused-argument
+    exec_properties: Dict[Text, Any],
     split_pattern: Text) -> beam.pvalue.PCollection:
   """Read Avro files and transform to TF examples.
 
@@ -47,15 +46,15 @@ def _AvroToExample(  # pylint: disable=invalid-name
   Args:
     pipeline: beam pipeline.
     input_dict: Input dict from input key to a list of Artifacts.
-      - input_base: input dir that contains Avro data.
     exec_properties: A dict of execution properties.
+      - input: input dir that contains Avro data.
     split_pattern: Split.pattern in Input config, glob relative file pattern
       that maps to input files with root directory given by input_base.
 
   Returns:
     PCollection of TF examples.
   """
-  input_base_uri = artifact_utils.get_single_uri(input_dict[INPUT_KEY])
+  input_base_uri = exec_properties[INPUT_KEY]
   avro_pattern = os.path.join(input_base_uri, split_pattern)
   absl.logging.info(
       'Processing input avro data {} to TFExample.'.format(avro_pattern))

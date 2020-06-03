@@ -27,6 +27,7 @@ from typing import Text
 
 import absl
 
+from tensorflow.python.util import deprecation  # pylint: disable=g-direct-tensorflow-import
 from tfx.types.artifact import Artifact
 from tfx.types.artifact import Property
 from tfx.types.artifact import PropertyType
@@ -64,6 +65,8 @@ class ExampleStatistics(Artifact):
   }
 
 
+# TODO(b/158334890): deprecate ExternalArtifact.
+@deprecation.deprecated(None, 'ExternalArtifact is deprecated.')
 class ExternalArtifact(Artifact):
   TYPE_NAME = 'ExternalArtifact'
 

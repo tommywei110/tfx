@@ -32,6 +32,8 @@
 *   Added support for container component execution to BeamDagRunner.
 *   Introduced experimental generic Artifact types for ML workflows.
 *   Added support for `float` execution properties.
+*   Changed Span information as a property of ExampleGen's output artifact.
+    (Deprecated ExampleGen input/external artifact).
 
 ## Bug fixes and other changes
 *   Migrated BigQueryExampleGen to the new (experimental) `ReadFromBigQuery`
@@ -83,6 +85,8 @@
     should point to a Google Cloud Storage bucket.
 *   Revert current per-component cache API (with `enable_cache`, which was only
     available in tfx>=0.21.3,<0.22), in preparing for a future redesign.
+*   Changed ExampleGen to take a string as input source directly.
+    Deprecated ExternalArtifact and `external_input` function.
 
 ### For component authors
 *   Converted the BaseNode class attributes to the constructor parameters. This
