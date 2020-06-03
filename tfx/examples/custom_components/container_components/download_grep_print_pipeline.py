@@ -41,7 +41,7 @@ downloader_component = container_component.create_container_component(
         'sh', '-exc',
         '''
           url="$0"
-          output_data_uri="$1"/data  # TODO(b/150515270) Remove when fixed.
+          output_data_uri="$1"
           output_data_path=$(mktemp)
 
           # Running the main code
@@ -75,9 +75,9 @@ grep_component = container_component.create_container_component(
         'sh', '-exc',
         '''
           pattern="$0"
-          text_uri="$1"/data  # TODO(b/150515270) Remove when fixed.
+          text_uri="$1"
           text_path=$(mktemp)
-          filtered_text_uri="$2"/data  # TODO(b/150515270) Remove when fixed.
+          filtered_text_uri="$2"
           filtered_text_path=$(mktemp)
 
           # Getting data into the container
@@ -108,7 +108,7 @@ print_component = container_component.create_container_component(
     command=[
         'sh', '-exc',
         '''
-          text_uri="$0"/data  # TODO(b/150515270) Remove when fixed.
+          text_uri="$0"
           text_path=$(mktemp)
 
           # Getting data into the container

@@ -20,10 +20,8 @@ from __future__ import print_function
 
 from typing import Text
 
-from tfx.utils import json_utils
 
-
-class InputValuePlaceholder(json_utils.Jsonable):
+class InputValuePlaceholder(object):
   """Represents a placeholder for the value of the input argument.
 
   Represents a placeholder that will be replaced at runtime with the string
@@ -34,7 +32,7 @@ class InputValuePlaceholder(json_utils.Jsonable):
     self.input_name = input_name
 
 
-class InputUriPlaceholder(json_utils.Jsonable):
+class InputUriPlaceholder(object):
   """Represents a placeholder for the URI of the input artifact argument.
 
   Represents a placeholder that will be replaced at runtime with the URI
@@ -45,7 +43,7 @@ class InputUriPlaceholder(json_utils.Jsonable):
     self.input_name = input_name
 
 
-class OutputUriPlaceholder(json_utils.Jsonable):
+class OutputUriPlaceholder(object):
   """Represents a placeholder for the URI of the output artifact argument.
 
   Represents a placeholder that will be replaced at runtime with the URI
