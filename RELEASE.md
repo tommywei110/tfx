@@ -1,6 +1,8 @@
 # Current Version(Still in Development)
 
 ## Major Features and Improvements
+*   Added the ConcatPlaceholder to tfx.dsl.component.experimental.placeholders.
+
 
 ## Bug fixes and other changes
 

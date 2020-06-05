@@ -18,7 +18,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from typing import Text
+from typing import List, Text, Union
 
 
 class InputValuePlaceholder(object):
@@ -52,3 +52,23 @@ class OutputUriPlaceholder(object):
 
   def __init__(self, output_name: Text):
     self.output_name = output_name
+
+
+class ConcatPlaceholder(object):
+  """Represents a placeholder for resut of concatenation of multiple parts.
+
+  Represents a placeholder that will be replaced at runtime with a single string
+  containing the concatenated parts.
+  """
+
+  def __init__(self, items: List['CommandlineArgumentType']):
+    self.items = items
+
+
+CommandlineArgumentType = Union[
+    Text,
+    InputValuePlaceholder,
+    InputUriPlaceholder,
+    OutputUriPlaceholder,
+    ConcatPlaceholder,
+]
