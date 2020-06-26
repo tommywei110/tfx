@@ -164,7 +164,7 @@ def _create_pipeline(pipeline_name: Text, pipeline_root: Text, data_root: Text,
       push_destination=pusher_pb2.PushDestination(
           filesystem=pusher_pb2.PushDestination.Filesystem(
               base_directory=serving_model_dir)))
-  
+
   components = [
       example_gen,
       statistics_gen,
@@ -183,7 +183,7 @@ def _create_pipeline(pipeline_name: Text, pipeline_root: Text, data_root: Text,
       metadata_connection_config=metadata.sqlite_metadata_connection_config(
           metadata_path),
       enable_cache=True,
-      beam_pipeline_args=_beam_pipeline_args)
+      beam_pipeline_args=beam_pipeline_args)
 
 # To run this pipeline from the python CLI:
 # $python imdb_pipeline_native_keras.py
