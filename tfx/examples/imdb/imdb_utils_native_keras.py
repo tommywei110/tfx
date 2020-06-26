@@ -15,7 +15,9 @@
 """Python source file include IMDB pipeline functions and necessary utils.
 
 The utilities in this file are used to build a model with native Keras.
-This module file will be used in Transform and generic Trainer."""
+This module file will be used in Transform and generic Trainer.
+"""
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -23,12 +25,14 @@ from __future__ import print_function
 from typing import List, Text
 
 import absl
-
 import tensorflow as tf
 from tensorflow import keras
 import tensorflow_transform as tft
 
 from tfx.components.trainer.executor import TrainerFnArgs
+
+_FEATURE_KEY = 'text'
+_LABEL_KEY = "label"
 
 # There are 100 entries in the imdb_small dataset. ExampleGen splits the dataset
 # with a 2:1 train-eval ratio. Batch_size is an empirically sound
@@ -38,9 +42,7 @@ from tfx.components.trainer.executor import TrainerFnArgs
 _DROPOUT_RATE = 0.2
 _EMBEDDING_UNITS = 64
 _EVAL_BATCH_SIZE = 5
-_FEATURE_KEY = 'text'
 _HIDDEN_UNITS = 64
-_LABEL_KEY = "label"
 _LEARNING_RATE = 1e-4
 _LSTM_UNITS = 64
 _VOCAB_SIZE = 8000
@@ -192,10 +194,10 @@ def run_fn(fn_args: TrainerFnArgs):
   # to control training.
   # Reference: https://stackoverflow.com/questions/45989971/
   # /distributed-training-with-tf-estimator-resulting-in-more-training-steps
+
   model.fit(
       train_dataset,
       epochs=1,
-      verbose=1,
       steps_per_epoch=fn_args.train_steps,
       validation_data=eval_dataset,
       validation_steps=fn_args.eval_steps)

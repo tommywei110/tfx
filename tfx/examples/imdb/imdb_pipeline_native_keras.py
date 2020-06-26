@@ -15,10 +15,11 @@
 """IMDB Sentiment Analysis example using TFX."""
 
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 
 import os
-from typing import Text
+from typing import List, Text
 
 import absl
 import tensorflow_model_analysis as tfma
@@ -32,21 +33,19 @@ from tfx.components import SchemaGen
 from tfx.components import StatisticsGen
 from tfx.components import Trainer
 from tfx.components import Transform
-from tfx.components.trainer.executor import GenericExecutor
 from tfx.components.base import executor_spec
-from tfx.utils.dsl_utils import external_input
+from tfx.components.trainer.executor import GenericExecutor
 from tfx.dsl.experimental import latest_blessed_model_resolver
-from tfx.types import Channel
-from tfx.types.standard_artifacts import Model
-from tfx.types.standard_artifacts import ModelBlessing
-
-from tfx.proto import example_gen_pb2
-from tfx.proto import pusher_pb2
-from tfx.proto import trainer_pb2
-
 from tfx.orchestration import metadata
 from tfx.orchestration import pipeline
 from tfx.orchestration.beam.beam_dag_runner import BeamDagRunner
+from tfx.proto import example_gen_pb2
+from tfx.proto import pusher_pb2
+from tfx.proto import trainer_pb2
+from tfx.types import Channel
+from tfx.types.standard_artifacts import Model
+from tfx.types.standard_artifacts import ModelBlessing
+from tfx.utils.dsl_utils import external_input
 
 _pipeline_name = 'imdb_native_keras'
 
@@ -61,7 +60,7 @@ _module_file = os.path.join(_imdb_root, 'imdb_utils_native_keras.py')
 # trained model here.
 _serving_model_dir = os.path.join(_imdb_root, 'serving_model', _pipeline_name)
 
-# Directory and data locations.  This example assumes all of the
+# Directory and data locations. This example assumes all of the
 # example code and metadata library is relative to $HOME, but you can store
 # these files anywhere on your local filesystem.
 _tfx_root = os.path.join(os.environ['HOME'], 'tfx')
@@ -75,12 +74,13 @@ _beam_pipeline_args = [
     '--direct_running_mode=multi_processing',
     # 0 means auto-detect based on on the number of CPUs available
     # during execution time.
-    '--direct_num_workers=1',
+    '--direct_num_workers=0',
 ]
 
 def _create_pipeline(pipeline_name: Text, pipeline_root: Text, data_root: Text,
                      module_file: Text, serving_model_dir: Text,
-                     metadata_path: Text) -> pipeline.Pipeline:
+                     metadata_path: Text,
+                     beam_pipeline_args: List[Text]) -> pipeline.Pipeline:
   """Implements the imdb sentiment analysis pipline with TFX."""
   output = example_gen_pb2.Output(split_config=example_gen_pb2.SplitConfig(
       splits=[
@@ -164,26 +164,29 @@ def _create_pipeline(pipeline_name: Text, pipeline_root: Text, data_root: Text,
       push_destination=pusher_pb2.PushDestination(
           filesystem=pusher_pb2.PushDestination.Filesystem(
               base_directory=serving_model_dir)))
-
+  
+  components = [
+      example_gen,
+      statistics_gen,
+      schema_gen,
+      example_validator,
+      transform,
+      trainer,
+      model_resolver,
+      evaluator,
+      pusher,
+  ]
   return pipeline.Pipeline(
       pipeline_name=pipeline_name,
       pipeline_root=pipeline_root,
-      components=[
-          example_gen,
-          statistics_gen,
-          schema_gen,
-          example_validator,
-          transform,
-          trainer,
-          model_resolver,
-          evaluator,
-          pusher,
-      ],
+      components=components,
       metadata_connection_config=metadata.sqlite_metadata_connection_config(
           metadata_path),
       enable_cache=True,
       beam_pipeline_args=_beam_pipeline_args)
 
+# To run this pipeline from the python CLI:
+# $python imdb_pipeline_native_keras.py
 if __name__ == '__main__':
   absl.logging.set_verbosity(absl.logging.INFO)
   BeamDagRunner().run(
@@ -193,4 +196,5 @@ if __name__ == '__main__':
           data_root=_data_root,
           module_file=_module_file,
           serving_model_dir=_serving_model_dir,
-          metadata_path=_metadata_path))
+          metadata_path=_metadata_path,
+          beam_pipeline_args=_beam_pipeline_args))
