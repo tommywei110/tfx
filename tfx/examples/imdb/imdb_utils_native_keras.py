@@ -32,7 +32,7 @@ import tensorflow_transform as tft
 from tfx.components.trainer.executor import TrainerFnArgs
 
 _FEATURE_KEY = 'text'
-_LABEL_KEY = "label"
+_LABEL_KEY = 'label'
 
 # There are 100 entries in the imdb_small dataset. ExampleGen splits the dataset
 # with a 2:1 train-eval ratio. Batch_size is an empirically sound
@@ -57,15 +57,23 @@ def _gzip_reader_fn(filenames):
   return tf.data.TFRecordDataset(filenames, compression_type='GZIP')
 
 def _tokenize_review(review):
-  """Tokenize the reviews by spliting the reviews, then constructing a
-  vocabulary. Map the words to their frequency index in the vocabulary."""
+  """Tokenize the reviews by spliting the reviews. 
+  Constructing a vocabulary. Map the words to their frequency index in the 
+  vocabulary.
+  
+  Args:
+    review: tensors containing the reviews. (batch_size/None, 1)
+
+  Returns:
+    Tokenized and padded review tensors. (batch_size/None, _MAX_LEN)
+  """
   review_sparse = tf.strings.split(tf.reshape(review, [-1])).to_sparse()
   # tft.apply_vocabulary doesn't reserve 0 for oov words. In order to comply
-  # with convention and use mask_zero in keras.embedding layer, manually set
-  # default value to -1 and add 1 to every index.
+  # with convention and use mask_zero in keras.embedding layer, set oov value
+  # to _VOCAB_SIZE and padding value to -1. Then add 1 to all the tokens.
   review_indices = tft.compute_and_apply_vocabulary(
       review_sparse,
-      default_value=-1,
+      default_value=_VOCAB_SIZE,
       top_k=_VOCAB_SIZE)
   dense = tf.sparse.to_dense(review_indices, default_value=-1)
   # TFX transform expects the transform result to be FixedLenFeature.
@@ -89,10 +97,11 @@ def preprocessing_fn(inputs):
   Returns:
     Map from string feature key to transformed feature operations.
   """
-  tokenized = _tokenize_review(inputs[_FEATURE_KEY])
   return {
       _transformed_name(_LABEL_KEY): inputs[_LABEL_KEY],
-      _transformed_name(_FEATURE_KEY, True): tokenized}
+      _transformed_name(_FEATURE_KEY, True): _tokenize_review(
+          inputs[_FEATURE_KEY])
+      }
 
 def _input_fn(file_pattern: List[Text],
               tf_transform_output: tft.TFTransformOutput,
@@ -132,7 +141,7 @@ def _build_keras_model() -> keras.Model:
   # https://www.tensorflow.org/guide/keras/sequential_model
   model = keras.Sequential([
       keras.layers.Embedding(
-          _VOCAB_SIZE+1,
+          _VOCAB_SIZE+2,
           _EMBEDDING_UNITS,
           name=_transformed_name(_FEATURE_KEY)
           ),
@@ -197,7 +206,6 @@ def run_fn(fn_args: TrainerFnArgs):
 
   model.fit(
       train_dataset,
-      epochs=1,
       steps_per_epoch=fn_args.train_steps,
       validation_data=eval_dataset,
       validation_steps=fn_args.eval_steps)
